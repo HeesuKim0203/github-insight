@@ -1,0 +1,7 @@
+name: 'github-insight'
+description: 'You can show your insights to the profile.'
+author: heesukim
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
