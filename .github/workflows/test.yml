@@ -1,0 +1,17 @@
+name: github-insight-test
+
+on:
+  push:
+    branches: 
+      - main
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: github-insight-test
+    steps:
+      - uses: actions/checkout@v3
+      - uses: HeesuKim0203/github-insight@0.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          USERNAME: ${{ github.repository_owner }}
