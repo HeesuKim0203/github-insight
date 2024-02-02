@@ -1,6 +1,4 @@
-const core = require('@actions/core')
-const github = require('@actions/github')
-
+import { setFailed } from '@actions/core'
 import { checkEnv } from './validation'
 
 export const main = async () : Promise<void> => {
@@ -9,6 +7,8 @@ export const main = async () : Promise<void> => {
     const token = process.env.GITHUB_TOKEN
     
     if( !checkEnv(token, 'GITHUB_TOKEN') ) return
+
+    console.log(process.argv)
 
     const userName = 3 <= process.argv.length ? process.argv[2] : process.env.USER_NAME
 
@@ -19,7 +19,7 @@ export const main = async () : Promise<void> => {
   } catch (_e) {
     const errorMessage = (_e as Error).message
 
-    core.setFailed(errorMessage)
+    setFailed(errorMessage)
   }
 }
 
