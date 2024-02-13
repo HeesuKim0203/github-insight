@@ -1,10 +1,3 @@
-export type ContributionLevel =
-    | 'NONE'
-    | 'FIRST_QUARTILE'
-    | 'SECOND_QUARTILE'
-    | 'THIRD_QUARTILE'
-    | 'FOURTH_QUARTILE'
-
 export type RequestType = {
     query: string
     variables: {
@@ -35,7 +28,7 @@ export type ContributionCalendar = {
     weeks: Array<{
         contributionDays: Array<{
             contributionCount: number
-            contributionLevel: ContributionLevel
+            contributionLevel: 'NONE' | 'FIRST_QUARTILE' | 'SECOND_QUARTILE' | 'THIRD_QUARTILE' | 'FOURTH_QUARTILE'
             /** "YYYY-MM-DD hh:mm:ss.SSS+00:00" */
             date: string
         }>
