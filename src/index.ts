@@ -16,6 +16,7 @@ export const main = async () : Promise<void> => {
     if( !checkEnv(userName, 'USER_NAME') ) return
 
     console.log(`Hello ${userName}!`)
+    console.log('test')
 
     const response = await api(token, userName, 100)
 
