@@ -28,6 +28,8 @@ export const main = async () : Promise<void> => {
   } catch (_e) {
     const errorMessage = (_e as Error).message
 
+    console.log(errorMessage)
+
     setFailed(errorMessage)
   }
 }
