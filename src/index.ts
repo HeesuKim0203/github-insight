@@ -2,6 +2,7 @@ import { setFailed } from '@actions/core'
 import { checkEnv } from './validation'
 import api from './api'
 import write from './write'
+import { existsSync } from 'fs'
 
 export const main = async () : Promise<void> => {
   try {
@@ -16,8 +17,13 @@ export const main = async () : Promise<void> => {
 
     console.log(`Hello ${userName}!`)
 
-    const response = api(token, userName, 100)
+    const response = await api(token, userName, 100)
+
     write('test.json', JSON.stringify(response))
+
+    const directory = existsSync("./test/test.json")
+
+    console.log("directory : ", directory)
 
   } catch (_e) {
     const errorMessage = (_e as Error).message
