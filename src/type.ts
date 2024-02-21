@@ -9,7 +9,7 @@ export type RequestHeader = {
     Authorization: string
 }
 
-export type CommitContributionsByRepository = Array<{
+export type CommitContributionsByRepository = {
     contributions: {
         totalCount: number
     }
@@ -20,18 +20,13 @@ export type CommitContributionsByRepository = Array<{
             color: string | null
         } | null
     }
-}>
+}
+
+export type CommitContributionsByRepositorys = Array<CommitContributionsByRepository>
 
 export type ContributionCalendar = {
     isHalloween: boolean
     totalContributions: number
-    weeks: Array<{
-        contributionDays: Array<{
-            contributionCount: number
-            contributionLevel: 'NONE' | 'FIRST_QUARTILE' | 'SECOND_QUARTILE' | 'THIRD_QUARTILE' | 'FOURTH_QUARTILE'
-            date: string
-        }>
-    }>
 }
 
 export type Repositories = {
@@ -48,7 +43,7 @@ export type ResponseType = {
     data?: {
         user: {
             contributionsCollection: {
-                commitContributionsByRepository: CommitContributionsByRepository
+                commitContributionsByRepository: CommitContributionsByRepositorys
                 contributionCalendar: ContributionCalendar
                 totalCommitContributions: number
                 totalIssueContributions: number
@@ -59,11 +54,9 @@ export type ResponseType = {
             repositories: Repositories
         }
     }
-    errors?: [
-        {
-            message: string
-        }
-    ]
+    errors?: [{
+        message: string
+    }]
 }
 
 export type ResponseNextType = {
@@ -75,4 +68,20 @@ export type ResponseNextType = {
     errors?: [{
         message: string
     }]
+}
+
+// create Svg
+export type Repository = {
+    name : string
+    commit : number
+}
+
+export type Language = {
+    name : string
+    repositorys : Repository[]
+}
+
+export type TreeMapDataType = {
+    name : string
+    languages : Language[]
 }
