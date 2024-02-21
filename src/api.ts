@@ -37,6 +37,7 @@ export const fetchFirst = async (
                         }
                         commitContributionsByRepository(maxRepositories: ${ maxReposOneQuery }) {
                             repository {
+                                name
                                 primaryLanguage {
                                     name
                                     color

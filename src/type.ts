@@ -12,15 +12,15 @@ export type RequestHeader = {
 export type CommitContributionsByRepository = Array<{
     contributions: {
         totalCount: number
-    };
+    }
     repository: {
+        name : string
         primaryLanguage: {
             name: string
-            /** "#RRGGBB" */
             color: string | null
         } | null
-    };
-}>;
+    }
+}>
 
 export type ContributionCalendar = {
     isHalloween: boolean
@@ -29,7 +29,6 @@ export type ContributionCalendar = {
         contributionDays: Array<{
             contributionCount: number
             contributionLevel: 'NONE' | 'FIRST_QUARTILE' | 'SECOND_QUARTILE' | 'THIRD_QUARTILE' | 'FOURTH_QUARTILE'
-            /** "YYYY-MM-DD hh:mm:ss.SSS+00:00" */
             date: string
         }>
     }>
@@ -45,7 +44,6 @@ export type Repositories = {
     }>
 }
 
-/** Response(first) of GraphQL */
 export type ResponseType = {
     data?: {
         user: {
@@ -68,7 +66,6 @@ export type ResponseType = {
     ]
 }
 
-/** Response(next) of GraphQL */
 export type ResponseNextType = {
     data?: {
         user: {
