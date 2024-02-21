@@ -12,8 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: HeesuKim0203/github-insight@0.0.2
-        with:
-          token: ${{ secrets.TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           USER_NAME: ${{ github.repository_owner }}
@@ -25,3 +23,5 @@ jobs:
           git add -A .
           git commit -m "generated"
           git push origin test/result
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
