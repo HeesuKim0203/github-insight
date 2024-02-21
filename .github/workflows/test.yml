@@ -24,6 +24,6 @@ jobs:
           git checkout -b test/result
           git add -A .
           git commit -m "generated"
-          git push origin test/result
+          git push -u origin test/result
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
