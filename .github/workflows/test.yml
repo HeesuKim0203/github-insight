@@ -12,8 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: HeesuKim0203/github-insight@0.0.2
+        with:
+          token: ${{ secrets.TOKEN }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER_NAME: ${{ github.repository_owner }}
       - name: Commit & Push
         run: |
