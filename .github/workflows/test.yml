@@ -15,6 +15,7 @@ jobs:
         with:
           token: ${{ secrets.TOKEN }}
         env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
           USER_NAME: ${{ github.repository_owner }}
       - name: Commit & Push
         run: |
