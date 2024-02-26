@@ -1,5 +1,5 @@
-import d3 from 'd3'
-import { TreeMapDataType, CommitContributionsByRepository } from './type'
+import * as d3 from 'd3'
+import { CommitContributionsByRepository, Repository, Language } from './type'
 
 const WIDTH = 1000
 const HEIGHT = 600
@@ -9,32 +9,43 @@ export const createSvg = () => {
     const testData = require('../scripts/test.json')
 
     const data = testData.data.user.contributionsCollection.commitContributionsByRepository
-
-    data.map((commitContributionsByRepository : CommitContributionsByRepository) => {
-        console.log(commitContributionsByRepository.repository.name)
-        console.log(commitContributionsByRepository.repository.primaryLanguage)
-        console.log(commitContributionsByRepository.contributions)
-        console.log("\n")
-    })
     
-    const test1 = data.reduce((prev : any[], commitContributionsByRepository : CommitContributionsByRepository) => {
-        console.log(commitContributionsByRepository.repository.primaryLanguage)
+    const test1 = data.reduce((prev : Language[], commitContributionsByRepository : CommitContributionsByRepository) => {
+        if( commitContributionsByRepository.repository.primaryLanguage ) {
+            const findIndex = prev.findIndex((color : any) => color.name === commitContributionsByRepository.repository.primaryLanguage?.name)
+            const { 
+                repository : { 
+                    name : repositoryName, primaryLanguage : { name, color } 
+                }, 
+                contributions : {
+                    totalCount
+                }
+            } = commitContributionsByRepository
 
-        const findIndex = prev.findIndex((color : any) => color.name ===)
-
-        if(  )
-
+            if( findIndex === -1 ) {
+                prev.push({
+                    name,
+                    color,
+                    repositorys : [{
+                        name : repositoryName,
+                        contributionsCount : totalCount
+                    }]
+                })
+            }else {
+                prev[findIndex].repositorys.push({
+                    name : repositoryName,
+                    contributionsCount : totalCount
+                })
+            }
+        }
         return prev
     }, [])
 
     console.log(test1)
 
-    // Specify the color scale.
-    // const color = d3.scaleOrdinal(data.children.map((d : any) => d.name), d3.schemeTableau10);
+    const color = d3.scaleOrdinal(test1.map((d : any) => d.name), test1.map((d : any) => d.color)) ;
 
-    // console.log(color)
-
-    // console.log(d3.schemeTableau10)
+    console.log(color)
 
 }
 

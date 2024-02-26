@@ -9,17 +9,19 @@ export type RequestHeader = {
     Authorization: string
 }
 
+export type RepositoryType = {
+    name : string
+    primaryLanguage: {
+        name: string
+        color: string | null
+    } | null
+}
+
 export type CommitContributionsByRepository = {
     contributions: {
         totalCount: number
     }
-    repository: {
-        name : string
-        primaryLanguage: {
-            name: string
-            color: string | null
-        } | null
-    }
+    repository: RepositoryType
 }
 
 export type CommitContributionsByRepositorys = Array<CommitContributionsByRepository>
@@ -70,18 +72,14 @@ export type ResponseNextType = {
     }]
 }
 
-// create Svg
+//
 export type Repository = {
     name : string
-    commit : number
+    contributionsCount : number
 }
 
 export type Language = {
     name : string
+    color : string | null
     repositorys : Repository[]
-}
-
-export type TreeMapDataType = {
-    name : string
-    languages : Language[]
 }
