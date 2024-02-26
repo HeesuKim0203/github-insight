@@ -27,13 +27,6 @@ export const fetchFirst = async (
                         contributionCalendar {
                             isHalloween
                             totalContributions
-                            weeks {
-                                contributionDays {
-                                    contributionCount
-                                    contributionLevel
-                                    date
-                                }
-                            }
                         }
                         commitContributionsByRepository(maxRepositories: ${ maxReposOneQuery }) {
                             repository {

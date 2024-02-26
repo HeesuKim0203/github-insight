@@ -9,29 +9,26 @@ export type RequestHeader = {
     Authorization: string
 }
 
-export type CommitContributionsByRepository = Array<{
+export type RepositoryType = {
+    name : string
+    primaryLanguage: {
+        name: string
+        color: string | null
+    } | null
+}
+
+export type CommitContributionsByRepository = {
     contributions: {
         totalCount: number
     }
-    repository: {
-        name : string
-        primaryLanguage: {
-            name: string
-            color: string | null
-        } | null
-    }
-}>
+    repository: RepositoryType
+}
+
+export type CommitContributionsByRepositorys = Array<CommitContributionsByRepository>
 
 export type ContributionCalendar = {
     isHalloween: boolean
     totalContributions: number
-    weeks: Array<{
-        contributionDays: Array<{
-            contributionCount: number
-            contributionLevel: 'NONE' | 'FIRST_QUARTILE' | 'SECOND_QUARTILE' | 'THIRD_QUARTILE' | 'FOURTH_QUARTILE'
-            date: string
-        }>
-    }>
 }
 
 export type Repositories = {
@@ -48,7 +45,7 @@ export type ResponseType = {
     data?: {
         user: {
             contributionsCollection: {
-                commitContributionsByRepository: CommitContributionsByRepository
+                commitContributionsByRepository: CommitContributionsByRepositorys
                 contributionCalendar: ContributionCalendar
                 totalCommitContributions: number
                 totalIssueContributions: number
@@ -59,11 +56,9 @@ export type ResponseType = {
             repositories: Repositories
         }
     }
-    errors?: [
-        {
-            message: string
-        }
-    ]
+    errors?: [{
+        message: string
+    }]
 }
 
 export type ResponseNextType = {
@@ -75,4 +70,15 @@ export type ResponseNextType = {
     errors?: [{
         message: string
     }]
+}
+
+export type Repository = {
+    name : string
+    value : number
+}
+
+export type Language = {
+    name : string
+    //color : string | null
+    children : Repository[]
 }
