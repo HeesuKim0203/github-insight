@@ -1,8 +1,16 @@
 import * as d3 from 'd3'
+import { JSDOM } from 'jsdom'
 import { CommitContributionsByRepository, Repository, Language } from './type'
+import write from './write'
 
 const WIDTH = 1000
 const HEIGHT = 600
+
+let uidCounter = 0 
+
+function uid(prefix) {
+    return `${prefix}-${uidCounter++}`
+}
 
 export const createSvg = () => {
 
@@ -10,12 +18,18 @@ export const createSvg = () => {
 
     const data = testData.data.user.contributionsCollection.commitContributionsByRepository
     
-    const test1 = data.reduce((prev : Language[], commitContributionsByRepository : CommitContributionsByRepository) => {
+    const colorData : (string | null)[] = []
+
+    const test1 = data.reduce((prev : any, commitContributionsByRepository : CommitContributionsByRepository) => {
         if( commitContributionsByRepository.repository.primaryLanguage ) {
-            const findIndex = prev.findIndex((color : any) => color.name === commitContributionsByRepository.repository.primaryLanguage?.name)
+            const findIndex = prev.children.findIndex((color : any) => color.name === commitContributionsByRepository.repository.primaryLanguage?.name)
             const { 
                 repository : { 
-                    name : repositoryName, primaryLanguage : { name, color } 
+                    name : repositoryName, 
+                    primaryLanguage : { 
+                        name, 
+                        color 
+                    } 
                 }, 
                 contributions : {
                     totalCount
@@ -23,90 +37,105 @@ export const createSvg = () => {
             } = commitContributionsByRepository
 
             if( findIndex === -1 ) {
-                prev.push({
+                prev.children.push({
                     name,
-                    color,
-                    repositorys : [{
+                    children : [{
                         name : repositoryName,
-                        contributionsCount : totalCount
+                        value : totalCount
                     }]
                 })
+
+                colorData.push(color)
             }else {
-                prev[findIndex].repositorys.push({
+                prev.children[findIndex].children.push({
                     name : repositoryName,
-                    contributionsCount : totalCount
+                    value : totalCount
                 })
             }
         }
         return prev
-    }, [])
+    }, { name : 'test', children : [] })
 
     console.log(test1)
 
-    const color = d3.scaleOrdinal(test1.map((d : any) => d.name), test1.map((d : any) => d.color)) ;
+    const color = d3.scaleOrdinal(test1.children.map((d : any) => d.name), colorData.map((d : any) => d))
 
-    console.log(color)
+    const fakeDom = new JSDOM(
+        '<!DOCTYPE html><html><body><div class="container"></div></body></html>'
+    )
+
+    const container = d3.select(fakeDom.window.document).select('.container')
+
+    const root = d3.treemap()
+    .tile(d3.treemapSquarify)
+    .size([WIDTH, HEIGHT])
+    .padding(1)
+    .round(true)
+    (d3.hierarchy(test1)
+        .sum((d : any) => d.value)
+        .sort((a : any, b : any) => b.value - a.value));
+
+
+    console.log(1)
+  
+    // Create the SVG container.
+    const svg = container.append("svg")
+        .attr("viewBox", `0 0 ${WIDTH} ${HEIGHT}`)
+        .attr("width", WIDTH)
+        .attr("height", HEIGHT)
+        .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
+
+    console.log(2)
+
+     // Add a cell for each leaf of the hierarchy.
+    const leaf = svg.selectAll("g")
+        .data(root.leaves())
+        .join("g")
+        .attr("transform", d => `translate(${d.x0},${d.y0})`)
+
+    // Append a tooltip.
+    const format = d3.format(",d")
+    leaf.append("title")
+        .text((d : any) => {
+            return `${d.ancestors().reverse().map((d : any) => d.data.name).join(".")}\n${format(d.value ? d.value : 0)}`
+        })
+
+
+    // Append a color rectangle. 
+    leaf.append("rect")
+        .attr("id", (d) => (d as any).leafUid = uid("leaf"))
+        .attr("fill", (d: any) : string => {
+            while (d.depth > 1) d = d.parent!
+            return color(d.data.name) as string
+        })
+        .attr("fill-opacity", 0.6)
+        .attr("width", (d : any) => d.x1 - d.x0)
+        .attr("height", (d : any) => d.y1 - d.y0)
+    
+    // Append a clipPath to ensure text does not overflow.
+    leaf.append("clipPath")
+        .attr("id", (d : any) => ((d as any).clipUid = uid("clip")))
+        .append("use")
+        .attr("xlink:href", (d : any) => `#${(d as any).leafUid}`)
+
+    console.log(3)
+    
+    // Append multiline text. The last line shows the value and has a specific formatting.
+    leaf.append("text")
+        .attr("clip-path", (d : any) => (d as any).clipUid)
+        .selectAll("tspan")
+        .data((d : any) => d.data.name?.split(/(?=[A-Z][a-z])|\s+/g).concat(format(d.value)))
+        .join("tspan")
+        .attr("x", 3)
+        .attr("y", (d : any, i : number, nodes : any) => {
+            const num = (i === nodes.length - 1)
+            return `${(num ? 1 : 0) * 0.3 + 1.1 + i * 0.9}em`
+        })
+        .attr("fill-opacity", (d, i, nodes) => i === nodes.length - 1 ? 0.7 : null)
+        .text((d : any) => d)
+    
+    return container.html()
 
 }
 
-createSvg()
-
-
-
-// Specify the color scale.
-// const color = d3.scaleOrdinal(data.children.map(d => d.name), d3.schemeTableau10);
-
-// // Compute the layout.
-// const root = d3.treemap()
-//     .tile(tile) // e.g., d3.treemapSquarify
-//     .size([width, height])
-//     .padding(1)
-//     .round(true)
-// (d3.hierarchy(data)
-//     .sum(d => d.value)
-//     .sort((a, b) => b.value - a.value));
-
-// // Create the SVG container.
-// const svg = d3.create("svg")
-//     .attr("viewBox", [0, 0, width, height])
-//     .attr("width", width)
-//     .attr("height", height)
-//     .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
-
-// // Add a cell for each leaf of the hierarchy.
-// const leaf = svg.selectAll("g")
-//     .data(root.leaves())
-//     .join("g")
-//     .attr("transform", d => `translate(${d.x0},${d.y0})`);
-
-// // Append a tooltip.
-// const format = d3.format(",d");
-// leaf.append("title")
-//     .text(d => `${d.ancestors().reverse().map(d => d.data.name).join(".")}\n${format(d.value)}`);
-
-// // Append a color rectangle. 
-// leaf.append("rect")
-//     .attr("id", d => (d.leafUid = DOM.uid("leaf")).id)
-//     .attr("fill", d => { while (d.depth > 1) d = d.parent; return color(d.data.name); })
-//     .attr("fill-opacity", 0.6)
-//     .attr("width", d => d.x1 - d.x0)
-//     .attr("height", d => d.y1 - d.y0);
-
-// // Append a clipPath to ensure text does not overflow.
-// leaf.append("clipPath")
-//     .attr("id", d => (d.clipUid = DOM.uid("clip")).id)
-//     .append("use")
-//     .attr("xlink:href", d => d.leafUid.href);
-
-// // Append multiline text. The last line shows the value and has a specific formatting.
-// leaf.append("text")
-//     .attr("clip-path", d => d.clipUid)
-//     .selectAll("tspan")
-//     .data(d => d.data.name.split(/(?=[A-Z][a-z])|\s+/g).concat(format(d.value)))
-//     .join("tspan")
-//     .attr("x", 3)
-//     .attr("y", (d, i, nodes) => `${(i === nodes.length - 1) * 0.3 + 1.1 + i * 0.9}em`)
-//     .attr("fill-opacity", (d, i, nodes) => i === nodes.length - 1 ? 0.7 : null)
-//     .text(d => d);
-
-// return Object.assign(svg.node(), {scales: {color}});
+write('test.svg', createSvg())

@@ -72,14 +72,13 @@ export type ResponseNextType = {
     }]
 }
 
-//
 export type Repository = {
     name : string
-    contributionsCount : number
+    value : number
 }
 
 export type Language = {
     name : string
-    color : string | null
-    repositorys : Repository[]
+    //color : string | null
+    children : Repository[]
 }
