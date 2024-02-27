@@ -3,12 +3,12 @@ import { JSDOM } from 'jsdom'
 import { CommitContributionsByRepository, Repository, Language } from './type'
 import write from './write'
 
-const WIDTH = 1000
-const HEIGHT = 600
+const WIDTH = 800
+const HEIGHT = 400
 
 let uidCounter = 0 
 
-function uid(prefix) {
+function uid(prefix : string) {
     return `${prefix}-${uidCounter++}`
 }
 
@@ -65,9 +65,9 @@ export const createSvg = () => {
     const container = d3.select(DOM.window.document).select('.container')
 
     const root = d3.treemap()
-        .tile(d3.treemapSquarify)
+        .tile(d3.treemapBinary)
         .size([WIDTH, HEIGHT])
-        .padding(1)
+        .padding(3)
         .round(true)
         (d3.hierarchy(test1)
             .sum((d : any) => d.value)
@@ -79,7 +79,7 @@ export const createSvg = () => {
         .attr('viewBox', `0 0 ${WIDTH} ${HEIGHT}`)
         .attr('width', WIDTH)
         .attr('height', HEIGHT)
-        .attr('style', 'max-width: 100%; height: auto; font: 10px sans-serif;')
+        .attr('style', 'max-width: 100%; height: auto; font: 14px sans-serif;')
 
     // Add a cell for each leaf of the hierarchy.
     const leaf = svg.selectAll('g')
@@ -89,12 +89,6 @@ export const createSvg = () => {
 
     // Append a tooltip.
     const format = d3.format(',d')
-
-    // leaf.append('text')
-    //     .attr('style', 'font-size : 12px ; font-weight : 700 ;')
-    //     .text((d : any) => {
-    //         return `${d.ancestors().reverse().map((d : any) => d.data.name).join(".")}\n${format(d.value ? d.value : 0)}`
-    //     })
 
     // Append a color rectangle. 
     leaf.append('rect')
@@ -124,7 +118,7 @@ export const createSvg = () => {
             const num = (i === nodes.length - 1)
             return `${(num ? 1 : 0) * 0.3 + 1.1 + i * 0.9}em`
         })
-        .attr('fill-opacity', (d, i, nodes) => i === nodes.length - 1 ? 0.7 : null)
+        .attr('fill-opacity', (d, i, nodes) => i === nodes.length - 1 ? 1 : null)
         .text((d : any) => d)
     
     return container.html()
