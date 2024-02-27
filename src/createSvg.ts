@@ -97,7 +97,7 @@ export const createSvg = () => {
             while (d.depth > 1) d = d.parent!
             return color(d.data.name) as string
         })
-        .attr('fill-opacity', 0.6)
+        .attr('fill-opacity', 0.8)
         .attr('width', (d : any) => d.x1 - d.x0)
         .attr('height', (d : any) => d.y1 - d.y0)
     
@@ -118,7 +118,7 @@ export const createSvg = () => {
             const num = (i === nodes.length - 1)
             return `${(num ? 1 : 0) * 0.3 + 1.1 + i * 0.9}em`
         })
-        .attr('fill-opacity', (d, i, nodes) => i === nodes.length - 1 ? 1 : null)
+        //.attr('fill-opacity', (d, i, nodes) => i === nodes.length - 1 ? 1 : null)
         .text((d : any) => d)
     
     return container.html()
