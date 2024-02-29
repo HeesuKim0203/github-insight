@@ -12,7 +12,8 @@ function uid(prefix : string) {
     return `${prefix}-${uidCounter++}`
 }
 
-export const createSvg = () => {
+// Tree Map
+export const createTreemap = () => {
 
     const testData = require('../scripts/test.json')
 
@@ -97,7 +98,7 @@ export const createSvg = () => {
             while (d.depth > 1) d = d.parent!
             return color(d.data.name) as string
         })
-        .attr('fill-opacity', 0.8)
+        .attr('fill-opacity', 0.9)
         .attr('width', (d : any) => d.x1 - d.x0)
         .attr('height', (d : any) => d.y1 - d.y0)
     
@@ -118,11 +119,123 @@ export const createSvg = () => {
             const num = (i === nodes.length - 1)
             return `${(num ? 1 : 0) * 0.3 + 1.1 + i * 0.9}em`
         })
-        //.attr('fill-opacity', (d, i, nodes) => i === nodes.length - 1 ? 1 : null)
         .text((d : any) => d)
     
     return container.html()
 
 }
 
-write('test.svg', createSvg())
+write('testTreeMap.svg', createTreemap())
+
+
+// Bar Graph
+export const createBarGraph = () => {
+
+    const testData = require('../scripts/test.json')
+
+    const data = testData.data.user.contributionsCollection.commitContributionsByRepository
+    
+    const colorData : (string | null)[] = []
+
+    const test1 = data.reduce((prev : any, commitContributionsByRepository : CommitContributionsByRepository) => {
+        if( commitContributionsByRepository.repository.primaryLanguage ) {
+            const findIndex = prev.children.findIndex((color : any) => color.name === commitContributionsByRepository.repository.primaryLanguage?.name)
+            const { 
+                repository : { 
+                    name : repositoryName, 
+                    primaryLanguage : { 
+                        name, 
+                        color 
+                    } 
+                }, 
+                contributions : {
+                    totalCount
+                }
+            } = commitContributionsByRepository
+
+            if( findIndex === -1 ) {
+                prev.children.push({
+                    name,
+                    children : [{
+                        name : repositoryName,
+                        value : totalCount
+                    }]
+                })
+
+                colorData.push(color)
+            }else {
+                prev.children[findIndex].children.push({
+                    name : repositoryName,
+                    value : totalCount
+                })
+            }
+        }
+        return prev
+    }, { name : 'test', children : [] })
+
+    // 차트의 크기를 지정합니다.
+  const width = 928;
+  const height = Math.min(width, 500);
+
+  // 색상 스케일을 생성합니다.
+  const color = d3.scaleOrdinal()
+    .domain(data.map(d => d.name))
+    .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
+
+  // 파이 레이아웃과 아크 생성기를 생성합니다.
+  const pie = d3.pie<DataItem>()
+    .sort(null)
+    .value(d => d.value);
+
+  const arc = d3.arc<d3.PieArcDatum<DataItem>>()
+    .innerRadius(0)
+    .outerRadius(Math.min(width, height) / 2 - 1);
+
+  const labelRadius = arc.outerRadius()() * 0.8;
+
+  // 라벨을 위한 별도의 아크 생성기입니다.
+  const arcLabel = d3.arc<d3.PieArcDatum<DataItem>>()
+    .innerRadius(labelRadius)
+    .outerRadius(labelRadius);
+
+  const arcs = pie(data);
+
+  // SVG 컨테이너를 생성합니다.
+  const svg = d3.create("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [-width / 2, -height / 2, width, height])
+    .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
+
+  // 각 값에 대한 섹터 경로를 추가합니다.
+  svg.append("g")
+    .attr("stroke", "white")
+    .selectAll("path")
+    .data(arcs)
+    .join("path")
+      .attr("fill", d => color(d.data.name))
+      .attr("d", arc)
+    .append("title")
+      .text(d => `${d.data.name}: ${d.data.value.toLocaleString("en-US")}`);
+
+  // 가장자리에 라벨을 배치하기 위한 새로운 아크 생성기를 생성합니다.
+  // 충분한 공간이 있다면 값이 표시됩니다.
+  svg.append("g")
+    .attr("text-anchor", "middle")
+    .selectAll("text")
+    .data(arcs)
+    .join("text")
+      .attr("transform", d => `translate(${arcLabel.centroid(d)})`)
+      .call(text => text.append("tspan")
+          .attr("y", "-0.4em")
+          .attr("font-weight", "bold")
+          .text(d => d.data.name))
+      .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
+          .attr("x", 0)
+          .attr("y", "0.7em")
+          .attr("fill-opacity", 0.7)
+          .text(d => d.data.value.toLocaleString("en-US")));
+
+  return svg.node()!;
+
+}
