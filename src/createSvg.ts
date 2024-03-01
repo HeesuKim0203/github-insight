@@ -129,7 +129,15 @@ write('testTreeMap.svg', createTreemap())
 
 
 // Bar Graph
-export const createBarGraph = () => {
+export const createPieGraph = () => {
+
+    type DataItem = {
+        name : string
+        value : number
+    }
+
+    const width = 928
+    const height = Math.min(width, 500)
 
     const testData = require('../scripts/test.json')
 
@@ -139,12 +147,10 @@ export const createBarGraph = () => {
 
     const test1 = data.reduce((prev : any, commitContributionsByRepository : CommitContributionsByRepository) => {
         if( commitContributionsByRepository.repository.primaryLanguage ) {
-            const findIndex = prev.children.findIndex((color : any) => color.name === commitContributionsByRepository.repository.primaryLanguage?.name)
             const { 
                 repository : { 
                     name : repositoryName, 
-                    primaryLanguage : { 
-                        name, 
+                    primaryLanguage : {
                         color 
                     } 
                 }, 
@@ -153,89 +159,76 @@ export const createBarGraph = () => {
                 }
             } = commitContributionsByRepository
 
-            if( findIndex === -1 ) {
-                prev.children.push({
-                    name,
-                    children : [{
-                        name : repositoryName,
-                        value : totalCount
-                    }]
-                })
+            prev.push({
+                name : repositoryName,
+                value : totalCount
+            })
 
-                colorData.push(color)
-            }else {
-                prev.children[findIndex].children.push({
-                    name : repositoryName,
-                    value : totalCount
-                })
-            }
+            colorData.push(color)
         }
         return prev
-    }, { name : 'test', children : [] })
+    }, [])
 
-    // 차트의 크기를 지정합니다.
-  const width = 928;
-  const height = Math.min(width, 500);
+    const color = d3.scaleOrdinal(test1.map((d : any) => d.name), colorData.map((d : any) => d))
 
-  // 색상 스케일을 생성합니다.
-  const color = d3.scaleOrdinal()
-    .domain(data.map(d => d.name))
-    .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
+    const DOM = new JSDOM(
+        '<!DOCTYPE html><html><body><div class="container"></div></body></html>'
+    )
 
-  // 파이 레이아웃과 아크 생성기를 생성합니다.
-  const pie = d3.pie<DataItem>()
-    .sort(null)
-    .value(d => d.value);
+    const container = d3.select(DOM.window.document).select('.container')
 
-  const arc = d3.arc<d3.PieArcDatum<DataItem>>()
-    .innerRadius(0)
-    .outerRadius(Math.min(width, height) / 2 - 1);
+    const pie = d3.pie<DataItem>()
+        .sort(null)
+        .value(d => d.value)
 
-  const labelRadius = arc.outerRadius()() * 0.8;
+    const arc = d3.arc<d3.PieArcDatum<DataItem>>()
+        .innerRadius(0)
+        .outerRadius(Math.min(width, height) / 2 - 1)
 
-  // 라벨을 위한 별도의 아크 생성기입니다.
-  const arcLabel = d3.arc<d3.PieArcDatum<DataItem>>()
-    .innerRadius(labelRadius)
-    .outerRadius(labelRadius);
+    const labelRadius = arc.outerRadius()(test1) * 0.8
 
-  const arcs = pie(data);
+    const arcLabel = d3.arc<d3.PieArcDatum<DataItem>>()
+        .innerRadius(labelRadius)
+        .outerRadius(labelRadius)
 
-  // SVG 컨테이너를 생성합니다.
-  const svg = d3.create("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", [-width / 2, -height / 2, width, height])
-    .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
+    const arcs = pie(test1);
 
-  // 각 값에 대한 섹터 경로를 추가합니다.
-  svg.append("g")
-    .attr("stroke", "white")
-    .selectAll("path")
-    .data(arcs)
-    .join("path")
-      .attr("fill", d => color(d.data.name))
-      .attr("d", arc)
-    .append("title")
-      .text(d => `${d.data.name}: ${d.data.value.toLocaleString("en-US")}`);
+    const svg = container.append('svg')
+        .attr('xmlns', 'http://www.w3.org/2000/svg')
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [-width / 2, -height / 2, width, height])
+        .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;")
 
-  // 가장자리에 라벨을 배치하기 위한 새로운 아크 생성기를 생성합니다.
-  // 충분한 공간이 있다면 값이 표시됩니다.
-  svg.append("g")
-    .attr("text-anchor", "middle")
-    .selectAll("text")
-    .data(arcs)
-    .join("text")
-      .attr("transform", d => `translate(${arcLabel.centroid(d)})`)
-      .call(text => text.append("tspan")
-          .attr("y", "-0.4em")
-          .attr("font-weight", "bold")
-          .text(d => d.data.name))
-      .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
-          .attr("x", 0)
-          .attr("y", "0.7em")
-          .attr("fill-opacity", 0.7)
-          .text(d => d.data.value.toLocaleString("en-US")));
+    svg.append("g")
+        .attr("stroke", "white")
+        .selectAll("path")
+        .data(arcs)
+        .join("path")
+        .attr("fill", d => color(d.data.name))
+        .attr("d", arc)
+        .append("title")
+        .text(d => `${d.data.name}: ${d.data.value}`)
 
-  return svg.node()!;
+    svg.append("g")
+        .attr("text-anchor", "middle")
+        .selectAll("text")
+        .data(arcs)
+        .join("text")
+        .attr("transform", d => `translate(${arcLabel.centroid(d)})`)
+        .call(text => text.append("tspan")
+            .attr("y", "-0.5em")
+            .attr("font-weight", "bold")
+            .text(d => d.data.name))
+        .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
+            .attr("x", 0)
+            .attr("y", "0.7em")
+            .attr("fill-opacity", 0.9)
+            .text(d => d.data.value))
+
+    return container.html()
 
 }
+
+
+write('testPieChart.svg', createPieGraph())
