@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="928" height="500" viewBox="0 0 800 400" style="max-width: 100%; height: auto; font: 12px sans-serif;">
+<g>
+    <rect x="1em" fill="#f1e05a" fill-opacity="0.9" width="15" height="15"></rect>
+    <text x="3em" y="1em">
+        <tspan font-weight="bold">javascript</tspan>
+    </text>
+</g>
+<g>
+    <rect x="8em" fill="#f1e05a" fill-opacity="0.9" width="15" height="15"></rect>
+    <text x="3em" y="1em">
+        <tspan font-weight="bold">javascript</tspan>
+    </text>
+</g>
+<g>
+    <rect x="1em" fill="#f1e05a" fill-opacity="0.9" width="15" height="15"></rect>
+    <text x="3em" y="1em">
+        <tspan font-weight="bold">javascript</tspan>
+    </text>
+</g>
+</svg>

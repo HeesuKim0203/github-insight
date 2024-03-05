@@ -74,7 +74,6 @@ export const createTreemap = () => {
             .sum((d : any) => d.value)
             .sort((a : any, b : any) => b.value - a.value));
 
-    // Create the SVG container.
     const svg = container.append('svg')
         .attr('xmlns', 'http://www.w3.org/2000/svg')
         .attr('viewBox', `0 0 ${WIDTH} ${HEIGHT}`)
@@ -82,16 +81,13 @@ export const createTreemap = () => {
         .attr('height', HEIGHT)
         .attr('style', 'max-width: 100%; height: auto; font: 14px sans-serif;')
 
-    // Add a cell for each leaf of the hierarchy.
     const leaf = svg.selectAll('g')
         .data(root.leaves())
         .join('g')
         .attr('transform', d => `translate(${d.x0},${d.y0})`)
 
-    // Append a tooltip.
     const format = d3.format(',d')
 
-    // Append a color rectangle. 
     leaf.append('rect')
         .attr('id', (d) => (d as any).leafUid = uid('leaf'))
         .attr('fill', (d: any) : string => {
@@ -102,13 +98,11 @@ export const createTreemap = () => {
         .attr('width', (d : any) => d.x1 - d.x0)
         .attr('height', (d : any) => d.y1 - d.y0)
     
-    // Append a clipPath to ensure text does not overflow.
     leaf.append('clipPath')
         .attr('id', (d : any) => ((d as any).clipUid = uid('clip')))
         .append('use')
         .attr('xlink:href', (d : any) => `#${(d as any).leafUid}`)
 
-    // Append multiline text. The last line shows the value and has a specific formatting.
     leaf.append('text')
         .attr('clip-path', (d : any) => (d as any).clipUid)
         .selectAll('tspan')
@@ -143,14 +137,16 @@ export const createPieGraph = () => {
 
     const data = testData.data.user.contributionsCollection.commitContributionsByRepository
     
-    const colorData : (string | null)[] = []
+    let colorData : (string | null)[] = []
 
     const test1 = data.reduce((prev : any, commitContributionsByRepository : CommitContributionsByRepository) => {
         if( commitContributionsByRepository.repository.primaryLanguage ) {
+            const findIndex = prev.findIndex((color : any) => color.name === commitContributionsByRepository.repository.primaryLanguage?.name)
             const { 
                 repository : { 
                     name : repositoryName, 
-                    primaryLanguage : {
+                    primaryLanguage : { 
+                        name, 
                         color 
                     } 
                 }, 
@@ -159,14 +155,28 @@ export const createPieGraph = () => {
                 }
             } = commitContributionsByRepository
 
-            prev.push({
-                name : repositoryName,
-                value : totalCount
-            })
-
-            colorData.push(color)
+            if( findIndex === -1 ) {
+                prev.push({
+                    name,
+                    color,
+                    repository : [{
+                        name : repositoryName,
+                        value : totalCount
+                    }]
+                })
+            }else {
+                prev[findIndex].repository.push({
+                    name : repositoryName,
+                    value : totalCount
+                })
+            }
         }
         return prev
+    }, []).reduce((prev : any, element : any) => {
+        for(let i = 0 ; i < element.repository.length ; i++)
+            colorData.push(element.color)
+
+        return prev.concat(element.repository)
     }, [])
 
     const color = d3.scaleOrdinal(test1.map((d : any) => d.name), colorData.map((d : any) => d))
@@ -198,7 +208,7 @@ export const createPieGraph = () => {
         .attr("width", width)
         .attr("height", height)
         .attr("viewBox", [-width / 2, -height / 2, width, height])
-        .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;")
+        .attr("style", "max-width: 100%; height: auto; font: 12px sans-serif;")
 
     svg.append("g")
         .attr("stroke", "white")
